@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>챌린지 보드</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-dark: #1a7a4a;
+    --green-main: #2ea65a;
+    --green-light: #4cc47a;
+    --green-pale: #e8f7ee;
+    --green-bg: #f0faf4;
+    --orange: #f7a030;
+    --orange-light: #fff3e0;
+    --purple: #8b5cf6;
+    --purple-light: #f3f0ff;
+    --blue: #3b82f6;
+    --blue-light: #eff6ff;
+    --red: #ef4444;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-500: #6b7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--green-bg);
+    color: var(--gray-900);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--green-dark);
+    color: white;
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .header-logo {
+    font-size: 18px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header-logo span { font-size: 22px; }
+  .header-nav { display: flex; gap: 6px; }
+  .nav-btn {
+    background: rgba(255,255,255,0.12);
+    border: none;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .nav-btn:hover, .nav-btn.active { background: rgba(255,255,255,0.25); }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+  }
+  .level-badge {
+    background: var(--orange);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  /* LAYOUT */
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  .grid-main { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+
+  /* CARD */
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gray-900);
+  }
+
+  /* TODAY BANNER */
+  .today-banner {
+    background: linear-gradient(135deg, var(--green-dark), var(--green-main));
+    border-radius: var(--radius);
+    color: white;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow-md);
+  }
+  .today-info h2 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .today-info p { font-size: 13px; opacity: 0.8; }
+  .streak-badge {
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 12px 20px;
+    text-align: center;
+  }
+  .streak-num { font-size: 28px; font-weight: 800; }
+  .streak-label { font-size: 12px; opacity: 0.8; }
+
+  /* COMPLETE BANNER */
+  .complete-banner {
+    background: var(--green-main);
+    border-radius: var(--radius);
+    color: white;
+    padding: 14px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    display: none;
+  }
+  .complete-banner.show { display: flex; }
+
+  /* PROGRESS CIRCLES */
+  .progress-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .progress-item { text-align: center; }
+  .circle-wrap { position: relative; width: 72px; height: 72px; margin: 0 auto 8px; }
+  .circle-wrap svg { transform: rotate(-90deg); }
+  .circle-bg { fill: none; stroke: var(--gray-100); stroke-width: 6; }
+  .circle-fill { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.8s ease; }
+  .circle-text {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .progress-label { font-size: 12px; color: var(--gray-500); font-weight: 500; }
+  .progress-sub { font-size: 11px; color: var(--gray-300); }
+
+  /* CHALLENGE LIST */
+  .challenge-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .btn-add {
+    background: var(--green-main);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn-add:hover { background: var(--green-dark); transform: translateY(-1px); }
+
+  .challenge-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .challenge-card:hover { box-shadow: var(--shadow-md); }
+
+  .challenge-header {
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .challenge-card.open .challenge-header { border-color: var(--gray-100); }
+
+  .challenge-emoji {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .challenge-info { flex: 1; }
+  .challenge-name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+  .challenge-meta { font-size: 12px; color: var(--gray-500); }
+  .challenge-points-total {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--green-main);
+    white-space: nowrap;
+  }
+  .challenge-actions {
+    display: flex;
+    gap: 6px;
+    margin-left: 8px;
+  }
+  .btn-icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    transition: background 0.2s;
+  }
+  .btn-edit { background: var(--blue-light); color: var(--blue); }
+  .btn-edit:hover { background: var(--blue); color: white; }
+  .btn-delete { background: #fee2e2; color: var(--red); }
+  .btn-delete:hover { background: var(--red); color: white; }
+  .chevron { color: var(--gray-300); font-size: 14px; transition: transform 0.3s; }
+  .challenge-card.open .chevron { transform: rotate(180deg); }
+
+  .tasks-container { padding: 0 18px 16px; display: none; }
+  .challenge-card.open .tasks-container { display: block; }
+
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .task-item:last-child { border-bottom: none; }
+
+  .task-check {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    border: 2px solid var(--gray-200);
+    background: white;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 12px;
+    color: transparent;
+  }
+  .task-check.checked {
+    background: var(--green-main);
+    border-color: var(--green-main);
+    color: white;
+  }
+
+  .task-info { flex: 1; }
+  .task-name { font-size: 13px; font-weight: 600; color: var(--gray-700); }
+  .task-name.done { text-decoration: line-through; color: var(--gray-300); }
+  .task-desc { font-size: 11px; color: var(--gray-500); margin-top: 1px; }
+
+  .task-right { display: flex; align-items: center; gap: 8px; }
+  .task-count-wrap { display: flex; align-items: center; gap: 6px; }
+  .count-btn {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    border: 1px solid var(--gray-200);
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-500);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .count-btn:hover { border-color: var(--green-main); color: var(--green-main); }
+  .count-num { font-size: 13px; font-weight: 700; min-width: 16px; text-align: center; }
+  .task-pt {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--orange);
+    background: var(--orange-light);
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+  .task-pt.earned { color: var(--green-main); background: var(--green-pale); }
+  .task-pt.partial-earn { color: var(--orange); background: var(--orange-light); }
+  .task-edit-btns { display: flex; gap: 4px; }
+
+  /* Task layout — left col wraps top row + rate bar */
+  .task-left-col { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .task-top-row { display: flex; align-items: center; gap: 10px; }
+
+  /* Completion rate bar inside task */
+  .task-rate-row {
+    display: flex; align-items: center; gap: 8px;
+    padding-left: 32px; /* align under task name */
+  }
+  .task-rate-bar-wrap {
+    flex: 1; height: 5px; border-radius: 3px;
+    background: var(--gray-100); overflow: hidden;
+  }
+  .task-rate-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+  .task-rate-label { font-size: 11px; font-weight: 700; min-width: 32px; text-align: right; }
+  .task-rate-pts { font-size: 11px; color: var(--gray-400); white-space: nowrap; }
+
+  /* Challenge header rate bar */
+  .challenge-rate-bar-wrap {
+    height: 4px; border-radius: 2px; background: var(--gray-100); overflow: hidden;
+  }
+  .challenge-rate-bar { height: 100%; border-radius: 2px; transition: width 0.4s ease; }
+
+  .btn-add-task {
+    width: 100%;
+    padding: 8px;
+    border: 1.5px dashed var(--gray-200);
+    border-radius: 8px;
+    background: white;
+    color: var(--gray-500);
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+  }
+  .btn-add-task:hover { border-color: var(--green-main); color: var(--green-main); background: var(--green-pale); }
+
+  /* RIGHT SIDE */
+  .points-card {
+    background: linear-gradient(135deg, #1a7a4a, #2ea65a);
+    border-radius: var(--radius);
+    color: white;
+    padding: 20px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .points-card .pts-label { font-size: 13px; opacity: 0.8; margin-bottom: 4px; }
+  .points-card .pts-num { font-size: 40px; font-weight: 800; line-height: 1; }
+  .points-card .pts-sub { font-size: 12px; opacity: 0.7; margin-top: 6px; }
+
+  .weekly-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .week-day { text-align: center; }
+  .week-label { font-size: 10px; color: var(--gray-500); margin-bottom: 4px; }
+  .week-dot {
+    width: 100%; padding-bottom: 100%;
+    border-radius: 4px;
+    background: var(--gray-100);
+    position: relative;
+  }
+  .week-dot.done { background: var(--green-main); }
+  .week-dot.today { outline: 2px solid var(--orange); }
+
+  .ranking-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .ranking-item:last-child { border-bottom: none; }
+  .rank-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--gray-100);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--gray-500);
+    flex-shrink: 0;
+  }
+  .rank-num.gold { background: #fef3c7; color: #d97706; }
+  .rank-num.silver { background: var(--gray-100); color: var(--gray-500); }
+  .rank-num.bronze { background: #fef0e7; color: #c2622f; }
+  .rank-name { flex: 1; font-size: 13px; font-weight: 600; }
+  .rank-pts { font-size: 13px; font-weight: 700; color: var(--green-main); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal {
+    background: white;
+    border-radius: 18px;
+    padding: 28px;
+    width: 480px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(20px);
+    transition: transform 0.2s;
+    box-shadow: var(--shadow-lg);
+  }
+  .modal-overlay.show .modal { transform: translateY(0); }
+  .modal h3 { font-size: 18px; font-weight: 800; margin-bottom: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; display: block; }
+  .form-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--green-main); }
+  .emoji-grid {
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px;
+  }
+  .emoji-btn {
+    width: 100%; padding: 6px 0;
+    border: 1.5px solid var(--gray-100);
+    border-radius: 8px;
+    background: white;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .emoji-btn:hover, .emoji-btn.selected { border-color: var(--green-main); background: var(--green-pale); }
+  .color-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+  .color-btn {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    border: 2.5px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .color-btn:hover, .color-btn.selected { transform: scale(1.15); border-color: var(--gray-700); }
+
+  .modal-footer { display: flex; gap: 10px; margin-top: 24px; }
+  .btn-cancel {
+    flex: 1; padding: 12px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    background: white;
+    font-size: 14px; font-weight: 600; font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-cancel:hover { background: var(--gray-100); }
+  .btn-save {
+    flex: 2; padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: var(--green-main);
+    color: white;
+    font-size: 14px; font-weight: 700; font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-save:hover { background: var(--green-dark); }
+
+  /* Task modal — card style */
+  .task-modal-list { margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+  .task-card {
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .task-card:focus-within { border-color: var(--green-main); }
+
+  .task-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    background: var(--gray-50);
+    cursor: pointer;
+    user-select: none;
+  }
+  .task-card-header:hover { background: var(--green-pale); }
+
+  .task-card-preview {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-700);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .task-card-preview.empty { color: var(--gray-300); font-weight: 400; }
+
+  .task-card-badges {
+    display: flex; gap: 4px; align-items: center; flex-shrink: 0;
+  }
+  .task-badge-pt {
+    font-size: 11px; font-weight: 700;
+    background: var(--orange-light); color: var(--orange);
+    padding: 2px 7px; border-radius: 8px;
+  }
+  .task-badge-type {
+    font-size: 11px; font-weight: 600;
+    background: var(--blue-light); color: var(--blue);
+    padding: 2px 7px; border-radius: 8px;
+  }
+  .task-card-chevron {
+    font-size: 11px; color: var(--gray-300);
+    transition: transform 0.25s;
+    flex-shrink: 0;
+  }
+  .task-card.open .task-card-chevron { transform: rotate(180deg); }
+
+  .task-card-body {
+    display: none;
+    padding: 12px 10px;
+    background: white;
+    border-top: 1px solid var(--gray-100);
+  }
+  .task-card.open .task-card-body { display: block; }
+
+  .task-field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .task-field-row:last-child { margin-bottom: 0; }
+  .task-field-row.full { grid-template-columns: 1fr; }
+
+  .task-field label {
+    display: block;
+    font-size: 11px; font-weight: 700;
+    color: var(--gray-500);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .task-field input,
+  .task-field select,
+  .task-field textarea {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1.5px solid var(--gray-200); border-radius: 8px;
+    font-size: 13px; font-family: inherit; outline: none;
+    background: white;
+    transition: border-color 0.15s;
+    resize: none;
+  }
+  .task-field input:focus,
+  .task-field select:focus,
+  .task-field textarea:focus { border-color: var(--green-main); }
+
+  .task-card-footer {
+    display: flex; justify-content: flex-end;
+    padding-top: 8px;
+    border-top: 1px solid var(--gray-100);
+    margin-top: 8px;
+  }
+  .task-remove-btn {
+    display: flex; align-items: center; gap: 4px;
+    padding: 5px 12px;
+    border-radius: 8px; border: none;
+    background: #fee2e2; color: var(--red);
+    cursor: pointer; font-size: 12px; font-weight: 600;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .task-remove-btn:hover { background: var(--red); color: white; }
+
+  .btn-add-task-modal {
+    width: 100%; padding: 10px;
+    border: 1.5px dashed var(--gray-200); border-radius: 10px;
+    background: white; color: var(--gray-500);
+    font-size: 13px; font-family: inherit; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-add-task-modal:hover { border-color: var(--green-main); color: var(--green-main); background: var(--green-pale); }
+
+  @media (max-width: 768px) {
+    .grid-main { grid-template-columns: 1fr; }
+    .progress-grid { grid-template-columns: repeat(2, 1fr); }
+    .header-nav { display: none; }
+  }
+
+  /* CALENDAR */
+  .cal-day-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 4px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gray-500);
+    padding: 0 2px;
+  }
+  .cal-day-header div:first-child { color: #ef4444; }
+  .cal-day-header div:last-child { color: var(--blue); }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+
+  .cal-cell {
+    border-radius: 10px;
+    padding: 6px 4px;
+    min-height: 72px;
+    cursor: pointer;
+    transition: box-shadow 0.15s, transform 0.1s;
+    position: relative;
+    background: var(--gray-50);
+    border: 1.5px solid transparent;
+  }
+  .cal-cell:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .cal-cell.other-month { opacity: 0.3; cursor: default; }
+  .cal-cell.other-month:hover { box-shadow: none; transform: none; }
+  .cal-cell.today { border-color: var(--orange); }
+  .cal-cell.selected { border-color: var(--green-main); box-shadow: 0 0 0 2px var(--green-pale); }
+  .cal-cell.has-activity { background: #f0fdf4; }
+  .cal-cell.full-done { background: var(--green-pale); }
+
+  .cal-date {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+  .cal-cell.today .cal-date {
+    background: var(--orange);
+    color: white;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+  }
+  .cal-sun .cal-date { color: #ef4444; }
+  .cal-sat .cal-date { color: var(--blue); }
+
+  .cal-pts {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--green-main);
+  }
+  .cal-dots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    margin-top: 3px;
+  }
+  .cal-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+  .cal-bar {
+    height: 4px;
+    border-radius: 2px;
+    margin-top: 4px;
+    background: var(--gray-100);
+    overflow: hidden;
+  }
+  .cal-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--green-main);
+    transition: width 0.3s;
+  }
+
+  /* Day detail */
+  .day-detail-challenge {
+    margin-bottom: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--gray-50);
+  }
+  .day-detail-challenge-name {
+    font-size: 14px; font-weight: 700; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .day-task-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 0; font-size: 13px;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .day-task-row:last-child { border-bottom: none; }
+  .day-task-check {
+    width: 16px; height: 16px; border-radius: 4px;
+    border: 2px solid var(--gray-200); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+  }
+  .day-task-check.done { background: var(--green-main); border-color: var(--green-main); color: white; }
+
+  /* Stats bar chart */
+  .bar-chart { display: flex; align-items: flex-end; gap: 3px; height: 160px; padding: 0 4px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+  .bar-rect {
+    width: 100%; border-radius: 4px 4px 0 0;
+    background: var(--green-light);
+    transition: height 0.4s ease;
+    min-height: 2px;
+    cursor: pointer;
+    position: relative;
+  }
+  .bar-rect:hover { background: var(--green-main); }
+  .bar-rect.today-bar { background: var(--orange); }
+  .bar-label { font-size: 9px; color: var(--gray-300); margin-top: 3px; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo"><span>🎯</span> 챌린지보드</div>
+  <div class="header-nav">
+    <button class="nav-btn active" onclick="switchTab('home', this)">🏠 홈</button>
+    <button class="nav-btn" onclick="switchTab('calendar', this)">📅 캘린더</button>
+    <button class="nav-btn" onclick="switchTab('stats', this)">📊 통계</button>
+  </div>
+  <div class="header-right">
+    <div class="level-badge" id="levelBadge">Lv.1 · 0점</div>
+  </div>
+</div>
+
+<div class="container">
+  <!-- TAB: HOME -->
+  <div id="tab-home" class="tab-panel">
+  <div class="grid-main">
+    <!-- LEFT -->
+    <div>
+      <!-- Today Banner -->
+      <div class="today-banner">
+        <div class="today-info">
+          <h2 id="todayDate">오늘도 화이팅! 🌱</h2>
+          <p id="todaySubtext">오늘의 챌린지를 완료해보세요</p>
+        </div>
+        <div class="streak-badge">
+          <div class="streak-num" id="streakNum">0</div>
+          <div class="streak-label">🔥 연속 달성</div>
+        </div>
+      </div>
+
+      <!-- Complete Banner -->
+      <div class="complete-banner" id="completeBanner">
+        ✅ 오늘 모든 과제 완료! 연속 달성 중 🔥
+      </div>
+
+      <!-- Progress Circles -->
+      <div class="card">
+        <div class="card-title">🎯 목표 달성률</div>
+        <div class="progress-grid" id="progressGrid"></div>
+      </div>
+
+      <!-- Challenge List -->
+      <div class="challenge-section-header">
+        <div class="card-title" style="margin:0">📋 나의 챌린지</div>
+        <button class="btn-add" onclick="openAddChallenge()">+ 챌린지 추가</button>
+      </div>
+      <div id="challengeList"></div>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+      <!-- Points -->
+      <div class="points-card">
+        <div class="pts-label">오늘 획득 포인트</div>
+        <div class="pts-num" id="todayPts">0</div>
+        <div class="pts-sub">누적 총 포인트: <span id="totalPts">0</span>점</div>
+      </div>
+
+      <!-- Weekly -->
+      <div class="card">
+        <div class="card-title">📅 이번 주 활동</div>
+        <div class="weekly-grid" id="weeklyGrid"></div>
+        <div style="display:flex;gap:8px;font-size:11px;color:var(--gray-500);margin-top:4px;">
+          <span>적음</span>
+          <div style="width:12px;height:12px;border-radius:3px;background:var(--gray-100)"></div>
+          <div style="width:12px;height:12px;border-radius:3px;background:#86efac"></div>
+          <div style="width:12px;height:12px;border-radius:3px;background:var(--green-main)"></div>
+          <span>많음</span>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="card">
+        <div class="card-title">📈 챌린지별 현황</div>
+        <div id="challengeSummary"></div>
+      </div>
+
+      <!-- Quick Badges -->
+      <div class="card">
+        <div class="card-title">🏅 획득 배지</div>
+        <div id="badgeList" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
+    </div>
+  </div><!-- end grid-main -->
+  </div><!-- end tab-home -->
+
+  <!-- TAB: CALENDAR -->
+  <div id="tab-calendar" class="tab-panel" style="display:none">
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <button class="btn-icon btn-edit" onclick="changeCalMonth(-1)" style="width:36px;height:36px;font-size:18px">‹</button>
+        <div id="calMonthTitle" style="font-size:18px;font-weight:800"></div>
+        <button class="btn-icon btn-edit" onclick="changeCalMonth(1)" style="width:36px;height:36px;font-size:18px">›</button>
+      </div>
+      <div class="cal-day-header">
+        <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+      </div>
+      <div id="calGrid" class="cal-grid"></div>
+      <!-- Legend -->
+      <div style="display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;font-size:12px;color:var(--gray-500)">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:var(--green-main);display:inline-block"></span>완료</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:#86efac;display:inline-block"></span>부분완료</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;background:var(--gray-100);display:inline-block"></span>미완료</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:3px;border:2px solid var(--orange);display:inline-block"></span>오늘</span>
+      </div>
+    </div>
+    <!-- Day detail panel -->
+    <div class="card" id="calDayDetail" style="display:none">
+      <div class="card-title" id="calDayDetailTitle">📋 선택한 날의 과제 현황</div>
+      <div id="calDayDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- TAB: STATS -->
+  <div id="tab-stats" class="tab-panel" style="display:none">
+    <div class="grid-main">
+      <div>
+        <div class="card">
+          <div class="card-title">📊 최근 30일 포인트 추이</div>
+          <div id="monthlyChart"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🎯 챌린지별 누적 현황</div>
+          <div id="statsChallenge"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title">🏆 전체 요약</div>
+          <div id="statsSummary"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔥 활동 기록</div>
+          <div id="statsStreak"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end container -->
+
+<!-- Challenge Modal -->
+<div class="modal-overlay" id="challengeModal">
+  <div class="modal">
+    <h3 id="modalTitle">새 챌린지 추가</h3>
+    <div class="form-group">
+      <label class="form-label">챌린지 이름</label>
+      <input class="form-input" id="cName" placeholder="예: 블로그 글쓰기">
+    </div>
+    <div class="form-group">
+      <label class="form-label">이모지</label>
+      <div class="emoji-grid" id="emojiGrid"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">색상 테마</label>
+      <div class="color-grid" id="colorGrid"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">기간</label>
+      <div style="display:flex;gap:8px;">
+        <input class="form-input" type="date" id="cStart" style="flex:1">
+        <span style="line-height:40px;color:var(--gray-500)">~</span>
+        <input class="form-input" type="date" id="cEnd" style="flex:1">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">과제 목록</label>
+      <div class="task-modal-list" id="taskModalList"></div>
+      <button class="btn-add-task-modal" onclick="addTaskRow()">+ 과제 추가</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-save" onclick="saveChallenge()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const EMOJIS = ['📝','💪','📚','🎯','🏃','🧘','💡','🌱','✍️','🎨','📊','🔥','⭐','🏆','💰','🎵','🌙','☀️','🎮','🍎'];
+const COLORS = ['#2ea65a','#3b82f6','#8b5cf6','#f59e0b','#ef4444','#ec4899','#06b6d4','#84cc16'];
+const COLOR_LABELS = ['초록','파랑','보라','노랑','빨강','분홍','하늘','연두'];
+
+let challenges = JSON.parse(localStorage.getItem('cb_challenges') || '[]');
+let todayLog = JSON.parse(localStorage.getItem('cb_todayLog') || '{}');
+let taskCounts = JSON.parse(localStorage.getItem('cb_taskCounts') || '{}');
+let history = JSON.parse(localStorage.getItem('cb_history') || '{}');
+
+const TODAY = new Date().toISOString().split('T')[0];
+let editingId = null;
+let selectedEmoji = EMOJIS[0];
+let selectedColor = COLORS[0];
+
+// ===================== INIT =====================
+function init() {
+  const d = new Date();
+  const days = ['일','월','화','수','목','금','토'];
+  document.getElementById('todayDate').textContent =
+    `${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]}) 챌린지 보드 🌱`;
+
+  if (challenges.length === 0) loadSampleData();
+  renderAll();
+}
+
+function loadSampleData() {
+  challenges = [
+    {
+      id: 'c1', name: '블로그 글쓰기', emoji: '📝', color: '#2ea65a',
+      start: '2026-03-01', end: '2026-03-31',
+      tasks: [
+        { id: 't1', name: '포스팅 작성', desc: '글 1개당 포인트', pt: 30, repeat: true, targetCount: 3 },
+        { id: 't2', name: 'SEO 키워드 리서치', desc: '키워드 분석 완료', pt: 10, repeat: false, targetCount: 1 },
+        { id: 't3', name: '썸네일 제작', desc: '이미지 1개당', pt: 5, repeat: true, targetCount: 5 },
+      ]
+    },
+    {
+      id: 'c2', name: '운동 루틴', emoji: '💪', color: '#3b82f6',
+      start: '2026-03-01', end: '2026-03-31',
+      tasks: [
+        { id: 't4', name: '유산소 30분', desc: '러닝/자전거/수영', pt: 20, repeat: false, targetCount: 1 },
+        { id: 't5', name: '근력 운동', desc: '세트당 포인트', pt: 5, repeat: true, targetCount: 10 },
+      ]
+    }
+  ];
+  saveChallenges();
+}
+
+// ===================== RENDER =====================
+function renderAll() {
+  renderChallenges();
+  renderProgress();
+  renderSidebar();
+  renderWeekly();
+  renderBadges();
+  updateHeader();
+}
+
+function renderChallenges() {
+  const list = document.getElementById('challengeList');
+  list.innerHTML = '';
+  if (challenges.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--gray-300);">
+      <div style="font-size:40px;margin-bottom:12px">🎯</div>
+      <div style="font-size:15px;font-weight:600">챌린지를 추가해보세요!</div>
+    </div>`;
+    return;
+  }
+  challenges.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'challenge-card';
+    div.id = 'cc_' + c.id;
+
+    const earnedPts = getTodayEarned(c);
+    const totalPossible = getTotalPossible(c);
+    const ratePct = totalPossible > 0 ? Math.round(earnedPts / totalPossible * 100) : 0;
+    const rateColor = ratePct >= 100 ? 'var(--green-main)' : ratePct >= 50 ? 'var(--orange)' : 'var(--blue)';
+
+    div.innerHTML = `
+      <div class="challenge-header" onclick="toggleChallenge('${c.id}')">
+        <div class="challenge-emoji" style="background:${c.color}22">${c.emoji}</div>
+        <div class="challenge-info">
+          <div class="challenge-name">${c.name}</div>
+          <div class="challenge-meta">${c.start} ~ ${c.end} · 과제 ${c.tasks.length}개</div>
+          <div class="challenge-rate-bar-wrap" style="margin-top:5px">
+            <div class="challenge-rate-bar" style="width:${ratePct}%;background:${rateColor}"></div>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="challenge-points-total">+${earnedPts}점</div>
+          <div style="font-size:12px;font-weight:700;color:${rateColor}">${ratePct}%</div>
+        </div>
+        <div class="challenge-actions" onclick="event.stopPropagation()">
+          <button class="btn-icon btn-edit" onclick="openEditChallenge('${c.id}')">✏️</button>
+          <button class="btn-icon btn-delete" onclick="deleteChallenge('${c.id}')">🗑️</button>
+        </div>
+        <div class="chevron">▼</div>
+      </div>
+      <div class="tasks-container" id="tasks_${c.id}">
+        ${c.tasks.map(t => renderTask(c, t)).join('')}
+      </div>
+    `;
+    list.appendChild(div);
+  });
+
+  // check complete
+  const allDone = challenges.every(c => getTodayEarned(c) >= getTotalPossible(c) && c.tasks.length > 0);
+  const banner = document.getElementById('completeBanner');
+  if (allDone && challenges.length > 0) banner.classList.add('show');
+  else banner.classList.remove('show');
+}
+
+function renderTask(c, t) {
+  const key = `${TODAY}_${c.id}_${t.id}`;
+  const target = t.repeat ? (t.targetCount || 1) : 1;
+  const count = t.repeat ? (taskCounts[key] || 0) : (todayLog[key] ? 1 : 0);
+  const isDone = t.repeat ? count >= target : !!todayLog[key];
+  const pct = Math.min(100, Math.round(count / target * 100));
+  const earned = t.repeat ? t.pt * count : (isDone ? t.pt : 0);
+
+  // progress bar color
+  const barColor = pct >= 100 ? 'var(--green-main)' : pct >= 50 ? '#f7a030' : 'var(--blue)';
+
+  return `
+    <div class="task-item" id="ti_${c.id}_${t.id}">
+      <div class="task-left-col">
+        <div class="task-top-row">
+          ${!t.repeat ? `
+            <div class="task-check ${isDone ? 'checked' : ''}" onclick="toggleTask('${c.id}','${t.id}')">
+              ${isDone ? '✓' : ''}
+            </div>
+          ` : `
+            <div class="task-check ${isDone ? 'checked' : (count>0?'partial':'')}" style="${count>0&&!isDone?'border-color:var(--orange);color:var(--orange)':''}">
+              ${isDone ? '✓' : count > 0 ? count : ''}
+            </div>
+          `}
+          <div class="task-info">
+            <div class="task-name ${isDone ? 'done' : ''}">${t.name}</div>
+            ${t.desc ? `<div class="task-desc">${t.desc}</div>` : ''}
+          </div>
+          <div class="task-right">
+            ${t.repeat ? `
+              <div class="task-count-wrap">
+                <button class="count-btn" onclick="changeCount('${c.id}','${t.id}',-1)">−</button>
+                <span class="count-num" style="color:${isDone?'var(--green-main)':'var(--gray-700)'}">${count}/${target}</span>
+                <button class="count-btn" onclick="changeCount('${c.id}','${t.id}',1)">+</button>
+              </div>
+            ` : ''}
+            <div class="task-pt ${isDone ? 'earned' : earned>0?'partial-earn':''}">
+              ${earned > 0 ? '+'+earned : t.repeat ? t.pt+'점×'+target : t.pt+'점'}
+            </div>
+          </div>
+        </div>
+        <!-- Completion rate bar -->
+        <div class="task-rate-row">
+          <div class="task-rate-bar-wrap">
+            <div class="task-rate-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+          </div>
+          <span class="task-rate-label" style="color:${barColor}">${pct}%</span>
+          ${t.repeat ? `<span class="task-rate-pts">+${earned}점 / 최대 ${t.pt*target}점</span>` : `<span class="task-rate-pts">${isDone?'완료 +'+t.pt+'점':'미완료 0점'}</span>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderProgress() {
+  const grid = document.getElementById('progressGrid');
+  if (challenges.length === 0) { grid.innerHTML = ''; return; }
+
+  const items = challenges.slice(0,3).map(c => {
+    const pct = getTotalPossible(c) > 0 ? Math.round(getTodayEarned(c) / getTotalPossible(c) * 100) : 0;
+    const stroke = c.color;
+    const r = 30, circ = 2 * Math.PI * r;
+    const offset = circ - (pct / 100) * circ;
+    return `<div class="progress-item">
+      <div class="circle-wrap">
+        <svg width="72" height="72" viewBox="0 0 72 72">
+          <circle class="circle-bg" cx="36" cy="36" r="${r}"/>
+          <circle class="circle-fill" cx="36" cy="36" r="${r}"
+            stroke="${stroke}" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+        </svg>
+        <div class="circle-text" style="color:${stroke}">${pct}%</div>
+      </div>
+      <div class="progress-label">${c.emoji} ${c.name}</div>
+    </div>`;
+  });
+
+  // Overall
+  const total = challenges.reduce((s,c) => s + getTotalPossible(c), 0);
+  const earned = challenges.reduce((s,c) => s + getTodayEarned(c), 0);
+  const overallPct = total > 0 ? Math.round(earned / total * 100) : 0;
+  const r = 30, circ = 2 * Math.PI * r;
+  const offset = circ - (overallPct / 100) * circ;
+  const overall = `<div class="progress-item">
+    <div class="circle-wrap">
+      <svg width="72" height="72" viewBox="0 0 72 72">
+        <circle class="circle-bg" cx="36" cy="36" r="${r}"/>
+        <circle class="circle-fill" cx="36" cy="36" r="${r}"
+          stroke="#f7a030" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+      </svg>
+      <div class="circle-text" style="color:#f7a030">${overallPct}%</div>
+    </div>
+    <div class="progress-label">🏆 전체</div>
+    <div class="progress-sub">${earned}/${total}점</div>
+  </div>`;
+
+  grid.innerHTML = items.join('') + overall;
+}
+
+function renderSidebar() {
+  const todayPts = challenges.reduce((s,c) => s + getTodayEarned(c), 0);
+  const totalPts = getTotalAllTime();
+  document.getElementById('todayPts').textContent = todayPts;
+  document.getElementById('totalPts').textContent = totalPts;
+
+  const summary = document.getElementById('challengeSummary');
+  if (challenges.length === 0) { summary.innerHTML = '<p style="color:var(--gray-300);font-size:13px">챌린지를 추가해주세요</p>'; return; }
+  summary.innerHTML = challenges.map(c => {
+    const pct = getTotalPossible(c) > 0 ? Math.round(getTodayEarned(c)/getTotalPossible(c)*100) : 0;
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+        <span style="font-weight:600">${c.emoji} ${c.name}</span>
+        <span style="color:var(--green-main);font-weight:700">${pct}%</span>
+      </div>
+      <div style="background:var(--gray-100);border-radius:4px;height:6px;overflow:hidden">
+        <div style="background:${c.color};height:100%;width:${pct}%;border-radius:4px;transition:width 0.5s"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderWeekly() {
+  const grid = document.getElementById('weeklyGrid');
+  const days = ['일','월','화','수','목','금','토'];
+  const today = new Date();
+  let html = '';
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    const pts = history[key] || 0;
+    const isToday = i === 0;
+    const cls = pts > 30 ? 'done' : pts > 0 ? 'done' : '';
+    html += `<div class="week-day">
+      <div class="week-label">${days[d.getDay()]}</div>
+      <div class="week-dot ${cls} ${isToday?'today':''}" title="${pts}점" style="${pts>0&&pts<=30?'background:#86efac':''}"></div>
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function renderBadges() {
+  const badges = [];
+  const totalPts = getTotalAllTime();
+  if (totalPts >= 10) badges.push({e:'🌱', n:'새싹'});
+  if (totalPts >= 100) badges.push({e:'🌿', n:'성장'});
+  if (totalPts >= 500) badges.push({e:'🌳', n:'거목'});
+  if (challenges.length >= 1) badges.push({e:'🎯', n:'시작'});
+  if (challenges.length >= 3) badges.push({e:'💪', n:'열정왕'});
+
+  const streak = getStreak();
+  if (streak >= 3) badges.push({e:'🔥', n:'3일연속'});
+  if (streak >= 7) badges.push({e:'⚡', n:'7일연속'});
+
+  document.getElementById('badgeList').innerHTML = badges.length ?
+    badges.map(b => `<div style="text-align:center;background:var(--green-pale);border-radius:10px;padding:8px 10px;">
+      <div style="font-size:22px">${b.e}</div>
+      <div style="font-size:10px;color:var(--gray-500);margin-top:2px">${b.n}</div>
+    </div>`).join('') :
+    '<p style="color:var(--gray-300);font-size:12px">챌린지를 완료하면 배지가 생겨요!</p>';
+}
+
+function updateHeader() {
+  const pts = getTotalAllTime();
+  const level = Math.floor(pts / 100) + 1;
+  const names = ['','씨앗','새싹','줄기','나무','열매','숲','대지'];
+  const lname = names[Math.min(level, names.length-1)] || '마스터';
+  document.getElementById('levelBadge').textContent = `Lv.${level} ${lname} · ${pts}점`;
+  document.getElementById('streakNum').textContent = getStreak();
+
+  const todayPts = challenges.reduce((s,c) => s + getTodayEarned(c), 0);
+  document.getElementById('todaySubtext').textContent =
+    todayPts > 0 ? `오늘 ${todayPts}점 획득했어요! 계속 화이팅 🔥` : '오늘의 챌린지를 완료해보세요';
+}
+
+// ===================== LOGIC =====================
+function getTodayEarned(c) {
+  return c.tasks.reduce((s, t) => {
+    const key = `${TODAY}_${c.id}_${t.id}`;
+    if (t.repeat) {
+      return s + t.pt * (taskCounts[key] || 0);
+    } else {
+      return s + (todayLog[key] ? t.pt : 0);
+    }
+  }, 0);
+}
+
+function getTotalPossible(c) {
+  return c.tasks.reduce((s, t) => {
+    return s + (t.repeat ? t.pt * (t.targetCount || 1) : t.pt);
+  }, 0);
+}
+
+// completion rate for a challenge (0~1)
+function getTodayCompletionRate(c) {
+  if (c.tasks.length === 0) return 0;
+  const rates = c.tasks.map(t => {
+    const key = `${TODAY}_${c.id}_${t.id}`;
+    if (t.repeat) {
+      const target = t.targetCount || 1;
+      return Math.min(1, (taskCounts[key] || 0) / target);
+    } else {
+      return todayLog[key] ? 1 : 0;
+    }
+  });
+  return rates.reduce((s,r) => s+r, 0) / rates.length;
+}
+
+function getTotalAllTime() {
+  const stored = Object.values(history).reduce((s,v) => s + v, 0);
+  const today = challenges.reduce((s,c) => s + getTodayEarned(c), 0);
+  return stored + today;
+}
+
+function getStreak() {
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    if (key === TODAY) {
+      const pts = challenges.reduce((s,c) => s + getTodayEarned(c), 0);
+      if (pts > 0) streak++;
+      else if (i === 0) continue;
+      else break;
+    } else if (history[key] && history[key] > 0) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function toggleTask(cid, tid) {
+  const key = `${TODAY}_${cid}_${tid}`;
+  todayLog[key] = !todayLog[key];
+  saveLog();
+  saveHistory();
+  renderAll();
+}
+
+function changeCount(cid, tid, delta) {
+  const key = `${TODAY}_${cid}_${tid}`;
+  const c = challenges.find(x => x.id === cid);
+  const t = c && c.tasks.find(x => x.id === tid);
+  const max = t ? (t.targetCount || 99) : 99;
+  const cur = taskCounts[key] || 0;
+  taskCounts[key] = Math.max(0, Math.min(max, cur + delta));
+  localStorage.setItem('cb_taskCounts', JSON.stringify(taskCounts));
+  saveHistory();
+  renderAll();
+}
+
+function toggleChallenge(id) {
+  const el = document.getElementById('cc_' + id);
+  el.classList.toggle('open');
+}
+
+function saveLog() { localStorage.setItem('cb_todayLog', JSON.stringify(todayLog)); }
+function saveChallenges() { localStorage.setItem('cb_challenges', JSON.stringify(challenges)); }
+function saveHistory() {
+  const pts = challenges.reduce((s,c) => s + getTodayEarned(c), 0);
+  history[TODAY] = pts;
+  localStorage.setItem('cb_history', JSON.stringify(history));
+}
+
+// ===================== MODAL =====================
+function buildEmojiGrid() {
+  document.getElementById('emojiGrid').innerHTML = EMOJIS.map(e =>
+    `<button class="emoji-btn ${e===selectedEmoji?'selected':''}" onclick="selectEmoji('${e}')">${e}</button>`
+  ).join('');
+}
+
+function buildColorGrid() {
+  document.getElementById('colorGrid').innerHTML = COLORS.map((c,i) =>
+    `<button class="color-btn ${c===selectedColor?'selected':''}"
+      style="background:${c}" onclick="selectColor('${c}')" title="${COLOR_LABELS[i]}"></button>`
+  ).join('');
+}
+
+function selectEmoji(e) { selectedEmoji = e; buildEmojiGrid(); }
+function selectColor(c) { selectedColor = c; buildColorGrid(); }
+
+let tempTasks = [];
+function addTaskRow(t) {
+  const task = t || { id: 't'+Date.now(), name:'', desc:'', pt:10, repeat:false, targetCount:1 };
+  tempTasks.push(task);
+  renderTaskRows();
+}
+
+function renderTaskRows() {
+  document.getElementById('taskModalList').innerHTML = tempTasks.map((t, i) => {
+    const preview = t.name || '과제명을 입력하세요';
+    const isEmpty = !t.name;
+    const typeLabel = t.repeat ? `횟수목표 (${t.targetCount||1}회)` : '1회 완료';
+    return `
+    <div class="task-card open" id="taskCard_${i}">
+      <div class="task-card-header" onclick="toggleTaskCard(${i})">
+        <span style="font-size:15px">📌</span>
+        <span class="task-card-preview ${isEmpty ? 'empty' : ''}" id="taskPreview_${i}">${preview}</span>
+        <div class="task-card-badges">
+          <span class="task-badge-pt" id="taskBadgePt_${i}">${t.pt}점</span>
+          <span class="task-badge-type" id="taskBadgeType_${i}">${typeLabel}</span>
+        </div>
+        <span class="task-card-chevron" id="taskChevron_${i}">▼</span>
+      </div>
+      <div class="task-card-body">
+        <div class="task-field-row full">
+          <div class="task-field">
+            <label>과제명 *</label>
+            <input placeholder="예: 블로그 포스팅 작성"
+              value="${t.name}"
+              oninput="tempTasks[${i}].name=this.value; updateTaskPreview(${i})">
+          </div>
+        </div>
+        <div class="task-field-row full">
+          <div class="task-field">
+            <label>설명 (선택)</label>
+            <textarea rows="2" placeholder="과제에 대한 간단한 설명"
+              oninput="tempTasks[${i}].desc=this.value">${t.desc || ''}</textarea>
+          </div>
+        </div>
+        <div class="task-field-row">
+          <div class="task-field">
+            <label>유형</label>
+            <select id="typeSelect_${i}" onchange="onTaskTypeChange(${i},this.value)">
+              <option value="0" ${!t.repeat ? 'selected' : ''}>1회 완료</option>
+              <option value="1" ${t.repeat ? 'selected' : ''}>횟수 목표</option>
+            </select>
+          </div>
+          <div class="task-field" id="targetCountField_${i}" style="${t.repeat ? '' : 'visibility:hidden'}">
+            <label>목표 횟수</label>
+            <input type="number" min="1" value="${t.targetCount||1}" placeholder="목표 횟수"
+              oninput="tempTasks[${i}].targetCount=+this.value; updateTaskPreview(${i})">
+          </div>
+        </div>
+        <div class="task-field-row">
+          <div class="task-field">
+            <label>${t.repeat ? '1회당 포인트' : '완료 포인트'}</label>
+            <input type="number" min="1" value="${t.pt}" id="ptInput_${i}"
+              oninput="tempTasks[${i}].pt=+this.value; updateTaskPreview(${i})">
+          </div>
+          <div class="task-field" id="totalPtField_${i}" style="${t.repeat ? '' : 'visibility:hidden'}">
+            <label>최대 획득 포인트</label>
+            <input type="number" readonly value="${t.pt*(t.targetCount||1)}" id="maxPtPreview_${i}"
+              style="background:var(--gray-50);color:var(--green-main);font-weight:700">
+          </div>
+        </div>
+        <div class="task-card-footer">
+          <button class="task-remove-btn" onclick="removeTaskRow(${i})">🗑️ 삭제</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function onTaskTypeChange(i, val) {
+  tempTasks[i].repeat = val === '1';
+  const countField = document.getElementById('targetCountField_' + i);
+  const totalField = document.getElementById('totalPtField_' + i);
+  if (countField) countField.style.visibility = val === '1' ? '' : 'hidden';
+  if (totalField) totalField.style.visibility = val === '1' ? '' : 'hidden';
+  updateTaskPreview(i);
+}
+
+function toggleTaskCard(i) {
+  const card = document.getElementById('taskCard_' + i);
+  card.classList.toggle('open');
+}
+
+function updateTaskPreview(i) {
+  const t = tempTasks[i];
+  const preview = document.getElementById('taskPreview_' + i);
+  const badgePt = document.getElementById('taskBadgePt_' + i);
+  const badgeType = document.getElementById('taskBadgeType_' + i);
+  const maxPtEl = document.getElementById('maxPtPreview_' + i);
+  if (preview) {
+    preview.textContent = t.name || '과제명을 입력하세요';
+    preview.className = 'task-card-preview' + (t.name ? '' : ' empty');
+  }
+  if (badgePt) badgePt.textContent = (t.pt || 0) + '점';
+  if (badgeType) badgeType.textContent = t.repeat ? `횟수목표 (${t.targetCount||1}회)` : '1회 완료';
+  if (maxPtEl) maxPtEl.value = (t.pt || 0) * (t.targetCount || 1);
+}
+
+function removeTaskRow(i) { tempTasks.splice(i, 1); renderTaskRows(); }
+
+function openAddChallenge() {
+  editingId = null;
+  selectedEmoji = EMOJIS[0];
+  selectedColor = COLORS[0];
+  tempTasks = [];
+  document.getElementById('cName').value = '';
+  const today = new Date().toISOString().split('T')[0];
+  const end = new Date(); end.setMonth(end.getMonth()+1);
+  document.getElementById('cStart').value = today;
+  document.getElementById('cEnd').value = end.toISOString().split('T')[0];
+  document.getElementById('modalTitle').textContent = '새 챌린지 추가';
+  buildEmojiGrid(); buildColorGrid(); renderTaskRows();
+  document.getElementById('challengeModal').classList.add('show');
+}
+
+function openEditChallenge(id) {
+  const c = challenges.find(x => x.id === id);
+  if (!c) return;
+  editingId = id;
+  selectedEmoji = c.emoji;
+  selectedColor = c.color;
+  tempTasks = c.tasks.map(t => ({...t}));
+  document.getElementById('cName').value = c.name;
+  document.getElementById('cStart').value = c.start;
+  document.getElementById('cEnd').value = c.end;
+  document.getElementById('modalTitle').textContent = '챌린지 수정';
+  buildEmojiGrid(); buildColorGrid(); renderTaskRows();
+  document.getElementById('challengeModal').classList.add('show');
+}
+
+function closeModal() { document.getElementById('challengeModal').classList.remove('show'); }
+
+function saveChallenge() {
+  const name = document.getElementById('cName').value.trim();
+  if (!name) { alert('챌린지 이름을 입력해주세요'); return; }
+  if (tempTasks.length === 0) { alert('과제를 1개 이상 추가해주세요'); return; }
+  if (tempTasks.some(t => !t.name.trim())) { alert('과제 이름을 모두 입력해주세요'); return; }
+
+  const c = {
+    id: editingId || 'c'+Date.now(),
+    name, emoji: selectedEmoji, color: selectedColor,
+    start: document.getElementById('cStart').value,
+    end: document.getElementById('cEnd').value,
+    tasks: tempTasks.map(t => ({...t, id: t.id || 't'+Date.now()}))
+  };
+
+  if (editingId) {
+    const idx = challenges.findIndex(x => x.id === editingId);
+    challenges[idx] = c;
+  } else {
+    challenges.push(c);
+  }
+  saveChallenges();
+  closeModal();
+  renderAll();
+}
+
+function deleteChallenge(id) {
+  if (!confirm('이 챌린지를 삭제할까요?')) return;
+  challenges = challenges.filter(c => c.id !== id);
+  saveChallenges();
+  renderAll();
+}
+
+// Click outside modal to close
+document.getElementById('challengeModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ===================== TABS =====================
+let currentTab = 'home';
+function switchTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).style.display = 'block';
+  btn.classList.add('active');
+  if (tab === 'calendar') renderCalendar();
+  if (tab === 'stats') renderStats();
+}
+
+// ===================== CALENDAR =====================
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let selectedCalDay = null;
+
+function changeCalMonth(delta) {
+  calMonth += delta;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function getDayPts(dateStr) {
+  if (dateStr === TODAY) return challenges.reduce((s,c) => s + getTodayEarned(c), 0);
+  return history[dateStr] || 0;
+}
+
+function getDayMaxPts() {
+  return challenges.reduce((s,c) => s + getTotalPossible(c), 0);
+}
+
+function renderCalendar() {
+  const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('calMonthTitle').textContent = `${calYear}년 ${monthNames[calMonth]}`;
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const lastDate = new Date(calYear, calMonth + 1, 0).getDate();
+  const prevLastDate = new Date(calYear, calMonth, 0).getDate();
+  const maxPts = getDayMaxPts();
+
+  let html = '';
+  let dayCount = 1;
+  let nextCount = 1;
+  const totalCells = Math.ceil((firstDay + lastDate) / 7) * 7;
+
+  for (let i = 0; i < totalCells; i++) {
+    const col = i % 7;
+    let date, dateStr, isOther = false;
+    if (i < firstDay) {
+      date = prevLastDate - firstDay + i + 1;
+      const prevMonth = calMonth === 0 ? 11 : calMonth - 1;
+      const prevYear = calMonth === 0 ? calYear - 1 : calYear;
+      dateStr = `${prevYear}-${String(prevMonth+1).padStart(2,'0')}-${String(date).padStart(2,'0')}`;
+      isOther = true;
+    } else if (dayCount <= lastDate) {
+      date = dayCount++;
+      dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(date).padStart(2,'0')}`;
+    } else {
+      date = nextCount++;
+      const nextMonth = calMonth === 11 ? 0 : calMonth + 1;
+      const nextYear = calMonth === 11 ? calYear + 1 : calYear;
+      dateStr = `${nextYear}-${String(nextMonth+1).padStart(2,'0')}-${String(date).padStart(2,'0')}`;
+      isOther = true;
+    }
+
+    const pts = getDayPts(dateStr);
+    const pct = maxPts > 0 ? Math.min(pts / maxPts, 1) : 0;
+    const isToday = dateStr === TODAY;
+    const isSel = dateStr === selectedCalDay;
+    const isSun = col === 0, isSat = col === 6;
+
+    let bgClass = '';
+    if (!isOther) {
+      if (pct >= 1) bgClass = 'full-done';
+      else if (pct > 0) bgClass = 'has-activity';
+    }
+
+    // Challenge color dots
+    const dots = !isOther ? challenges.filter(c => {
+      if (dateStr < c.start || dateStr > c.end) return false;
+      if (dateStr === TODAY) return getTodayEarned(c) > 0;
+      return (history[dateStr] || 0) > 0;
+    }).map(c => `<div class="cal-dot" style="background:${c.color}"></div>`).join('') : '';
+
+    html += `<div class="cal-cell ${isOther?'other-month':''} ${isToday?'today':''} ${isSel?'selected':''} ${bgClass} ${isSun?'cal-sun':''} ${isSat?'cal-sat':''}"
+      onclick="${!isOther ? `selectCalDay('${dateStr}')` : ''}">
+      <div class="cal-date">${date}</div>
+      ${!isOther && pts > 0 ? `<div class="cal-pts">+${pts}점</div>` : ''}
+      ${!isOther && dots ? `<div class="cal-dots">${dots}</div>` : ''}
+      ${!isOther && maxPts > 0 ? `<div class="cal-bar"><div class="cal-bar-fill" style="width:${Math.round(pct*100)}%"></div></div>` : ''}
+    </div>`;
+  }
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+function selectCalDay(dateStr) {
+  selectedCalDay = dateStr;
+  renderCalendar();
+  showDayDetail(dateStr);
+}
+
+function showDayDetail(dateStr) {
+  const detail = document.getElementById('calDayDetail');
+  const content = document.getElementById('calDayDetailContent');
+  const title = document.getElementById('calDayDetailTitle');
+  const pts = getDayPts(dateStr);
+
+  const d = new Date(dateStr + 'T00:00:00');
+  const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const dows = ['일','월','화','수','목','금','토'];
+  title.textContent = `📋 ${d.getMonth()===new Date().getMonth()&&d.getDate()===new Date().getDate()&&d.getFullYear()===new Date().getFullYear()?'오늘 ':''}${months[d.getMonth()]} ${d.getDate()}일 (${dows[d.getDay()]}) — ${pts}점`;
+
+  if (challenges.length === 0) {
+    content.innerHTML = '<p style="color:var(--gray-300);font-size:13px;padding:12px 0">챌린지가 없어요</p>';
+    detail.style.display = 'block';
+    return;
+  }
+
+  const isToday = dateStr === TODAY;
+  let html = '';
+  challenges.forEach(c => {
+    if (dateStr < c.start || dateStr > c.end) return;
+    html += `<div class="day-detail-challenge">
+      <div class="day-detail-challenge-name">
+        <span style="background:${c.color}22;padding:2px 6px;border-radius:6px">${c.emoji}</span>
+        ${c.name}
+        ${isToday ? `<span style="font-size:11px;color:var(--green-main);margin-left:auto">+${getTodayEarned(c)}점</span>` : ''}
+      </div>`;
+    c.tasks.forEach(t => {
+      let checked = false, cnt = 1;
+      if (isToday) {
+        const key = `${TODAY}_${c.id}_${t.id}`;
+        checked = todayLog[key] || false;
+        cnt = taskCounts[key] || 1;
+      }
+      const earned = checked ? (t.repeat ? t.pt * cnt : t.pt) : 0;
+      html += `<div class="day-task-row">
+        <div class="day-task-check ${checked?'done':''}">${checked?'✓':''}</div>
+        <span style="flex:1;color:${checked?'var(--gray-300)':'var(--gray-700)'};${checked?'text-decoration:line-through':''}">${t.name}</span>
+        <span style="font-size:11px;font-weight:700;color:${checked?'var(--green-main)':'var(--gray-300)'}">
+          ${checked ? '+'+earned : t.pt+(t.repeat?'점(반복)':'점')}
+        </span>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  if (!html) html = '<p style="color:var(--gray-300);font-size:13px;padding:12px 0">이 날은 진행 중인 챌린지가 없어요</p>';
+  content.innerHTML = html;
+  detail.style.display = 'block';
+  detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ===================== STATS =====================
+function renderStats() {
+  renderBarChart();
+  renderStatsChallenge();
+  renderStatsSummary();
+  renderStatsStreak();
+}
+
+function renderBarChart() {
+  const days = 30;
+  const today = new Date();
+  let data = [];
+  let maxPts = 1;
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    const pts = key === TODAY ? challenges.reduce((s,c) => s + getTodayEarned(c), 0) : (history[key] || 0);
+    maxPts = Math.max(maxPts, pts);
+    data.push({ key, pts, isToday: i === 0, label: i % 5 === 0 ? `${d.getMonth()+1}/${d.getDate()}` : '' });
+  }
+
+  const html = `<div class="bar-chart">` +
+    data.map(d => {
+      const h = Math.round((d.pts / maxPts) * 140);
+      return `<div class="bar-col">
+        <div class="bar-rect ${d.isToday?'today-bar':''}" style="height:${h}px" title="${d.key}: ${d.pts}점"></div>
+        <div class="bar-label">${d.label}</div>
+      </div>`;
+    }).join('') + `</div>
+    <div style="font-size:11px;color:var(--gray-500);text-align:right;margin-top:4px">최대: ${maxPts}점</div>`;
+  document.getElementById('monthlyChart').innerHTML = html;
+}
+
+function renderStatsChallenge() {
+  const el = document.getElementById('statsChallenge');
+  if (!challenges.length) { el.innerHTML = '<p style="color:var(--gray-300);font-size:13px">챌린지가 없어요</p>'; return; }
+  el.innerHTML = challenges.map(c => {
+    const activeDays = Object.keys(history).filter(k => k >= c.start && k <= c.end && history[k] > 0).length;
+    const totalDays = Math.max(1, Math.ceil((new Date(Math.min(new Date(c.end), new Date())) - new Date(c.start)) / 86400000) + 1);
+    const pct = Math.round(activeDays / totalDays * 100);
+    const totalEarned = Object.entries(history).filter(([k]) => k >= c.start && k <= c.end).reduce((s,[,v]) => s + v, 0);
+    return `<div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px">
+        <span style="font-weight:700">${c.emoji} ${c.name}</span>
+        <span style="color:var(--gray-500)">${activeDays}일 활동 / ${totalDays}일</span>
+      </div>
+      <div style="background:var(--gray-100);border-radius:4px;height:8px;overflow:hidden;margin-bottom:4px">
+        <div style="background:${c.color};height:100%;width:${pct}%;border-radius:4px;transition:width 0.5s"></div>
+      </div>
+      <div style="font-size:11px;color:var(--gray-500)">달성률 ${pct}% · 누적 약 ${totalEarned}점</div>
+    </div>`;
+  }).join('');
+}
+
+function renderStatsSummary() {
+  const totalPts = getTotalAllTime();
+  const activeDays = Object.values(history).filter(v => v > 0).length;
+  const streak = getStreak();
+  const level = Math.floor(totalPts / 100) + 1;
+  document.getElementById('statsSummary').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      ${[
+        ['🏆','누적 포인트', totalPts+'점'],
+        ['📅','활동한 날', activeDays+'일'],
+        ['🔥','현재 연속', streak+'일'],
+        ['⭐','현재 레벨', 'Lv.'+level],
+        ['🎯','챌린지 수', challenges.length+'개'],
+        ['✅','오늘 점수', challenges.reduce((s,c)=>s+getTodayEarned(c),0)+'점'],
+      ].map(([e,l,v]) => `<div style="background:var(--gray-50);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:22px;margin-bottom:4px">${e}</div>
+        <div style="font-size:11px;color:var(--gray-500)">${l}</div>
+        <div style="font-size:16px;font-weight:800;color:var(--green-main)">${v}</div>
+      </div>`).join('')}
+    </div>`;
+}
+
+function renderStatsStreak() {
+  const entries = Object.entries(history).filter(([,v]) => v > 0).sort((a,b) => a[0].localeCompare(b[0]));
+  const recent = [...entries].reverse().slice(0, 10);
+  if (!recent.length) {
+    document.getElementById('statsStreak').innerHTML = '<p style="color:var(--gray-300);font-size:13px">아직 활동 기록이 없어요</p>';
+    return;
+  }
+  document.getElementById('statsStreak').innerHTML = `
+    <div style="font-size:13px;color:var(--gray-500);margin-bottom:8px">최근 활동 기록</div>` +
+    recent.map(([k,v]) => {
+      const d = new Date(k + 'T00:00:00');
+      const dows = ['일','월','화','수','목','금','토'];
+      const isToday = k === TODAY;
+      return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100);font-size:13px">
+        <span style="font-weight:${isToday?'700':'500'}">${d.getMonth()+1}/${d.getDate()} (${dows[d.getDay()]})${isToday?' 오늘':''}</span>
+        <span style="color:var(--green-main);font-weight:700">+${v}점</span>
+      </div>`;
+    }).join('');
+}
+
+init();
+</script>
+</body>
+</html>
