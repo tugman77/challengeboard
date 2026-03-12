@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>챌린지 보드</title>
+<meta name="description" content="매일 챌린지를 체크하고 포인트를 쌓아보세요">
+<meta name="theme-color" content="#1a7a4a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="챌린지보드">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -667,6 +675,57 @@
     .grid-main { grid-template-columns: 1fr; }
     .progress-grid { grid-template-columns: repeat(2, 1fr); }
     .header-nav { display: none; }
+    .container { padding-bottom: 80px; } /* 하단 탭바 높이만큼 여백 */
+  }
+
+  .header-settings-btn { display: flex; }
+  @media (max-width: 768px) {
+    .header-settings-btn { display: none; } /* 모바일에선 하단 탭바에 있음 */
+  }
+  .bottom-nav {
+    display: none; /* 데스크탑에서는 숨김 */
+  }
+  @media (max-width: 768px) {
+    .bottom-nav {
+      display: flex;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 150;
+      background: white;
+      border-top: 1px solid var(--gray-100);
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+      height: 64px;
+      padding-bottom: env(safe-area-inset-bottom); /* iPhone 홈 인디케이터 대응 */
+    }
+    .bottom-nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      border: none;
+      background: transparent;
+      color: var(--gray-300);
+      font-family: inherit;
+      cursor: pointer;
+      transition: color 0.15s;
+      padding: 8px 0;
+      position: relative;
+    }
+    .bottom-nav-btn.active {
+      color: var(--green-main);
+    }
+    .bottom-nav-btn.active::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 20%; right: 20%;
+      height: 3px;
+      background: var(--green-main);
+      border-radius: 0 0 3px 3px;
+    }
+    .bottom-nav-icon { font-size: 22px; line-height: 1; }
+    .bottom-nav-label { font-size: 10px; font-weight: 700; }
   }
 
   /* CALENDAR */
@@ -807,7 +866,7 @@
   </div>
   <div class="header-right">
     <div id="syncStatus" class="sync-dot offline" title="Supabase 연결 안됨">●</div>
-    <button class="nav-btn" onclick="openSettings(event)" style="font-size:16px;padding:6px 10px">⚙️</button>
+    <button class="nav-btn header-settings-btn" onclick="openSettings(event)" style="font-size:16px;padding:6px 10px">⚙️</button>
     <div class="level-badge" id="levelBadge">Lv.1 · 0점</div>
   </div>
 </div>
@@ -946,6 +1005,26 @@
 
 </div><!-- end container -->
 
+<!-- 하단 탭바 (모바일 전용) -->
+<nav class="bottom-nav" id="bottomNav">
+  <button class="bottom-nav-btn active" id="bnHome" onclick="switchTab('home', this, 'bnHome')">
+    <span class="bottom-nav-icon">🏠</span>
+    <span class="bottom-nav-label">홈</span>
+  </button>
+  <button class="bottom-nav-btn" id="bnCalendar" onclick="switchTab('calendar', this, 'bnCalendar')">
+    <span class="bottom-nav-icon">📅</span>
+    <span class="bottom-nav-label">캘린더</span>
+  </button>
+  <button class="bottom-nav-btn" id="bnStats" onclick="switchTab('stats', this, 'bnStats')">
+    <span class="bottom-nav-icon">📊</span>
+    <span class="bottom-nav-label">통계</span>
+  </button>
+  <button class="bottom-nav-btn" id="bnSettings" onclick="openSettings(event)">
+    <span class="bottom-nav-icon">⚙️</span>
+    <span class="bottom-nav-label">설정</span>
+  </button>
+</nav>
+
 <!-- Challenge Modal -->
 <div class="modal-overlay" id="challengeModal">
   <div class="modal">
@@ -1025,6 +1104,50 @@
     </div>
   </div>
 </div>
+
+<!-- PWA 설치 안내 배너 -->
+<div id="installBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;
+  background:linear-gradient(135deg,#1a7a4a,#2ea65a);color:white;
+  padding:14px 20px;box-shadow:0 -4px 20px rgba(0,0,0,0.2);
+  display:none;align-items:center;gap:12px;">
+  <div style="font-size:28px">🎯</div>
+  <div style="flex:1">
+    <div style="font-size:14px;font-weight:700">앱으로 설치하기</div>
+    <div style="font-size:12px;opacity:0.85">홈 화면에 추가하면 앱처럼 바로 열려요</div>
+  </div>
+  <button id="installBtn" style="background:white;color:#1a7a4a;border:none;
+    padding:8px 16px;border-radius:20px;font-weight:700;font-size:13px;
+    font-family:inherit;cursor:pointer;white-space:nowrap">설치</button>
+  <button onclick="document.getElementById('installBanner').style.display='none'"
+    style="background:rgba(255,255,255,0.2);border:none;color:white;
+    width:28px;height:28px;border-radius:50%;font-size:16px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+</div>
+
+<!-- iOS 전용 설치 안내 -->
+<div id="iosBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;
+  background:white;border-top:1px solid #e5e7eb;padding:16px 20px;
+  box-shadow:0 -4px 20px rgba(0,0,0,0.1);">
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="font-size:28px;flex-shrink:0">📱</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:4px">홈 화면에 추가하기 (iOS)</div>
+      <div style="font-size:12px;color:#6b7280;line-height:1.6">
+        Safari 하단의 <strong>공유 버튼 <span style="font-size:14px">⎙</span></strong> 을 탭한 후<br>
+        <strong>"홈 화면에 추가"</strong>를 선택하세요
+      </div>
+    </div>
+    <button onclick="document.getElementById('iosBanner').style.display='none'"
+      style="background:#f3f4f6;border:none;color:#6b7280;
+      width:28px;height:28px;border-radius:50%;font-size:14px;cursor:pointer;flex-shrink:0">✕</button>
+  </div>
+  <!-- 화살표 -->
+  <div style="text-align:center;margin-top:8px;font-size:22px;animation:bounce 1s infinite">↓</div>
+</div>
+
+<style>
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(4px)} }
+</style>
 
 <script>
 // ===================== DATA =====================
@@ -1237,6 +1360,50 @@ document.querySelector('#settingsModal .modal').addEventListener('mousedown', fu
 
 // ===================== INIT =====================
 async function init() {
+  // Service Worker 등록 (PWA)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .catch(e => console.log('SW 등록 실패(로컬 개발환경에서는 정상):', e));
+  }
+
+  // PWA 설치 프롬프트 (Android/Chrome)
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // 이미 설치됐으면 표시 안 함
+    if (!localStorage.getItem('pwa_installed')) {
+      const banner = document.getElementById('installBanner');
+      banner.style.display = 'flex';
+    }
+  });
+  document.getElementById('installBtn').addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      localStorage.setItem('pwa_installed', '1');
+      document.getElementById('installBanner').style.display = 'none';
+    }
+    deferredPrompt = null;
+  });
+  window.addEventListener('appinstalled', () => {
+    localStorage.setItem('pwa_installed', '1');
+    document.getElementById('installBanner').style.display = 'none';
+  });
+
+  // iOS Safari 설치 안내
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isInStandalone = window.navigator.standalone === true;
+  if (isIos && !isInStandalone && !localStorage.getItem('ios_banner_dismissed')) {
+    setTimeout(() => {
+      document.getElementById('iosBanner').style.display = 'block';
+    }, 2000);
+    document.getElementById('iosBanner').querySelector('button').addEventListener('click', () => {
+      localStorage.setItem('ios_banner_dismissed', '1');
+    });
+  }
+
   const d = new Date();
   const days = ['일','월','화','수','목','금','토'];
   document.getElementById('todayDate').textContent =
@@ -1801,12 +1968,22 @@ document.querySelector('#challengeModal .modal').addEventListener('mousedown', f
 
 // ===================== TABS =====================
 let currentTab = 'home';
+// tab → bottom nav button id 매핑
+const TAB_TO_BN = { home: 'bnHome', calendar: 'bnCalendar', stats: 'bnStats' };
+
 function switchTab(tab, btn) {
   currentTab = tab;
+  // 패널 전환
   document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + tab).style.display = 'block';
-  btn.classList.add('active');
+  // 헤더 탭 (데스크탑)
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (btn && btn.classList.contains('nav-btn')) btn.classList.add('active');
+  // 하단 탭바 (모바일)
+  document.querySelectorAll('.bottom-nav-btn').forEach(b => b.classList.remove('active'));
+  const bnId = TAB_TO_BN[tab];
+  if (bnId) document.getElementById(bnId)?.classList.add('active');
+
   if (tab === 'calendar') renderCalendar();
   if (tab === 'stats') renderStats();
 }
