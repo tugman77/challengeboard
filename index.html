@@ -807,7 +807,7 @@
   </div>
   <div class="header-right">
     <div id="syncStatus" class="sync-dot offline" title="Supabase 연결 안됨">●</div>
-    <button class="nav-btn" onclick="openSettings()" style="font-size:16px;padding:6px 10px">⚙️</button>
+    <button class="nav-btn" onclick="openSettings(event)" style="font-size:16px;padding:6px 10px">⚙️</button>
     <div class="level-badge" id="levelBadge">Lv.1 · 0점</div>
   </div>
 </div>
@@ -837,7 +837,12 @@
 
       <!-- Progress Circles -->
       <div class="card">
-        <div class="card-title">🎯 목표 달성률</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="card-title" style="margin:0">🎯 목표 달성률</div>
+        </div>
+        <!-- 전체 달성률 가로 바 (상단) -->
+        <div id="overallProgressBar"></div>
+        <!-- 챌린지별 원형 차트 -->
         <div class="progress-grid" id="progressGrid"></div>
       </div>
 
@@ -1150,7 +1155,8 @@ async function saveHistory() {
 }
 
 // ===================== SETTINGS =====================
-function openSettings() {
+function openSettings(e) {
+  if (e) e.stopPropagation();
   document.getElementById('settingsModal').classList.add('show');
   document.getElementById('connectResult').className = 'connect-result';
   document.getElementById('migrateResult').style.display = 'none';
@@ -1222,8 +1228,11 @@ async function migrateToSupabase() {
   }
 }
 
-document.getElementById('settingsModal').addEventListener('click', function(e) {
+document.getElementById('settingsModal').addEventListener('mousedown', function(e) {
   if (e.target === this) closeSettings();
+});
+document.querySelector('#settingsModal .modal').addEventListener('mousedown', function(e) {
+  e.stopPropagation();
 });
 
 // ===================== INIT =====================
@@ -1386,9 +1395,38 @@ function renderTask(c, t) {
 
 function renderProgress() {
   const grid = document.getElementById('progressGrid');
+  const overallBar = document.getElementById('overallProgressBar');
+
+  // ── 전체 달성률 계산
+  const total = challenges.reduce((s,c) => s + getTotalPossible(c), 0);
+  const earned = challenges.reduce((s,c) => s + getTodayEarned(c), 0);
+  const overallPct = total > 0 ? Math.round(earned / total * 100) : 0;
+  const barColor = overallPct >= 100 ? 'var(--green-main)' : overallPct >= 50 ? 'var(--orange)' : 'var(--blue)';
+
+  // ── 전체 달성률 가로 바 (상단)
+  overallBar.innerHTML = `
+    <div style="background:var(--gray-50);border-radius:12px;padding:14px 16px;margin-bottom:16px;border:1.5px solid var(--gray-100)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:18px">🏆</span>
+          <span style="font-size:14px;font-weight:800;color:var(--gray-900)">오늘 전체 달성률</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:12px;color:var(--gray-500)">${earned} / ${total}점</span>
+          <span style="font-size:20px;font-weight:900;color:${barColor}">${overallPct}%</span>
+        </div>
+      </div>
+      <div style="background:var(--gray-200);border-radius:6px;height:10px;overflow:hidden">
+        <div style="height:100%;border-radius:6px;background:${barColor};width:${overallPct}%;transition:width 0.6s ease;
+          ${overallPct>=100 ? 'box-shadow:0 0 8px rgba(46,166,90,0.5)' : ''}"></div>
+      </div>
+      ${overallPct >= 100 ? `<div style="text-align:center;margin-top:8px;font-size:12px;font-weight:700;color:var(--green-main)">🎉 오늘 모든 챌린지 완료!</div>` : ''}
+    </div>`;
+
+  // ── 챌린지별 원형 차트 (하단)
   if (challenges.length === 0) { grid.innerHTML = ''; return; }
 
-  const items = challenges.slice(0,3).map(c => {
+  grid.innerHTML = challenges.slice(0, 4).map(c => {
     const pct = getTotalPossible(c) > 0 ? Math.round(getTodayEarned(c) / getTotalPossible(c) * 100) : 0;
     const stroke = c.color;
     const r = 30, circ = 2 * Math.PI * r;
@@ -1404,28 +1442,7 @@ function renderProgress() {
       </div>
       <div class="progress-label">${c.emoji} ${c.name}</div>
     </div>`;
-  });
-
-  // Overall
-  const total = challenges.reduce((s,c) => s + getTotalPossible(c), 0);
-  const earned = challenges.reduce((s,c) => s + getTodayEarned(c), 0);
-  const overallPct = total > 0 ? Math.round(earned / total * 100) : 0;
-  const r = 30, circ = 2 * Math.PI * r;
-  const offset = circ - (overallPct / 100) * circ;
-  const overall = `<div class="progress-item">
-    <div class="circle-wrap">
-      <svg width="72" height="72" viewBox="0 0 72 72">
-        <circle class="circle-bg" cx="36" cy="36" r="${r}"/>
-        <circle class="circle-fill" cx="36" cy="36" r="${r}"
-          stroke="#f7a030" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
-      </svg>
-      <div class="circle-text" style="color:#f7a030">${overallPct}%</div>
-    </div>
-    <div class="progress-label">🏆 전체</div>
-    <div class="progress-sub">${earned}/${total}점</div>
-  </div>`;
-
-  grid.innerHTML = items.join('') + overall;
+  }).join('');
 }
 
 function renderSidebar() {
@@ -1775,8 +1792,11 @@ function deleteChallenge(id) {
 }
 
 // Click outside modal to close
-document.getElementById('challengeModal').addEventListener('click', function(e) {
+document.getElementById('challengeModal').addEventListener('mousedown', function(e) {
   if (e.target === this) closeModal();
+});
+document.querySelector('#challengeModal .modal').addEventListener('mousedown', function(e) {
+  e.stopPropagation();
 });
 
 // ===================== TABS =====================
