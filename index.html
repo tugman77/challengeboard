@@ -1454,6 +1454,12 @@ function renderAll() {
 
 function renderChallenges() {
   const list = document.getElementById('challengeList');
+
+  // 현재 열린 챌린지 카드 ID 저장
+  const openIds = new Set(
+    [...document.querySelectorAll('.challenge-card.open')].map(el => el.id.replace('cc_', ''))
+  );
+
   list.innerHTML = '';
   if (challenges.length === 0) {
     list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--gray-300);">
@@ -1464,7 +1470,8 @@ function renderChallenges() {
   }
   challenges.forEach(c => {
     const div = document.createElement('div');
-    div.className = 'challenge-card';
+    // 이전에 열려 있던 카드면 open 유지, 아니면 닫힌 상태
+    div.className = 'challenge-card' + (openIds.has(c.id) ? ' open' : '');
     div.id = 'cc_' + c.id;
 
     const earnedPts = getTodayEarned(c);
